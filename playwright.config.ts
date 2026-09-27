@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { ENV_CONFIG } from './config/environment';
 import {logger} from './helpers/logger';
 
-logger.info(`Loaded environment configuration: ${ENV_CONFIG.ENV_NAME}`);
+logger.info(`Loaded environment configuration: ${ENV_CONFIG.ENV}`);
 
 /**
  * Read environment variables from file.

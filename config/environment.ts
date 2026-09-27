@@ -7,7 +7,7 @@ const envPath = path.resolve(__dirname, `../.env.${env}`);
 dotenv.config({ path: envPath });
 
 export const ENV_CONFIG = {
-    ENV_NAME: process.env.ENV_NAME || 'dev',
+    ENV: env,
     BASE_URL: process.env.SAUCE_URL!,
     SAUCE_USERNAME: process.env.SAUCE_USERNAME!,
     SAUCE_PASSWORD: process.env.SAUCE_PASSWORD!
