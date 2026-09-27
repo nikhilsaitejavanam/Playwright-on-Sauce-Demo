@@ -1,13 +1,20 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, qa ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, qa ]
+  workflow_dispatch:
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      ENV: qa
+      ENV_NAME: qa
+      SAUCE_URL: ${{ vars.SAUCE_URL }}
+      SAUCE_USERNAME: ${{ vars.SAUCE_USERNAME }}
+      SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -17,8 +24,8 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
+    - name: Run QA Playwright tests
+      run: npm run qa
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
