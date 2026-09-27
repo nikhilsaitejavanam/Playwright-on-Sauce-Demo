@@ -7,9 +7,9 @@ const consoleFormat = winston.format.printf(({ level, message, timestamp }) => {
 });
 
 // Custom format for file output: converts the level to uppercase without color codes
-const fileFormat = winston.format.printf(({ level, message, timestamp }) => {
-  return `[${timestamp}] [${level.toUpperCase()}]: ${message}`;
-});
+// const fileFormat = winston.format.printf(({ level, message, timestamp }) => {
+//   return `[${timestamp}] [${level.toUpperCase()}]: ${message}`;
+// });
 
 // Create the shared logger instance
 export const logger = winston.createLogger({
@@ -26,13 +26,13 @@ export const logger = winston.createLogger({
     }),
 
     // 2. File Transport: Appends plain text logs into the target log file
-    new winston.transports.File({
-      filename: path.join(__dirname, '../log/test-execution.log'),
-      level: 'info',
-      format: winston.format.combine(
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        fileFormat
-      ),
-    }),
+    // new winston.transports.File({
+    //   filename: path.join(__dirname, '../log/test-execution.log'),
+    //   level: 'info',
+    //   format: winston.format.combine(
+    //     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    //     fileFormat
+    //   ),
+    // }),
   ],
 });

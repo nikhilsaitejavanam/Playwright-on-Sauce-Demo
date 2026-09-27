@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "dev":"cross-env ENV=dev npx playwright test --headed",
+    "qa":"cross-env ENV=qa npx playwright test",
+    "uat":"cross-env ENV=uat npx playwright test --grep @smoke"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nikhilsaitejavanam/Playwright-on-Sauce-Demo.git"
@@ -17,6 +21,8 @@
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.2",
+    "cross-env": "^10.1.0",
+    "dotenv": "^18.0.4",
     "winston": "^3.19.0"
   }
 }
