@@ -5,27 +5,55 @@ on:
   pull_request:
     branches: [ main, qa ]
   workflow_dispatch:
+
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    env:
-      ENV: qa
-      ENV_NAME: qa
-      SAUCE_URL: ${{ vars.SAUCE_URL }}
-      SAUCE_USERNAME: ${{ vars.SAUCE_USERNAME }}
-      SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+    
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+
     - name: Install dependencies
       run: npm ci
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-    - name: Run QA Playwright tests
-      run: npm run qa
+
+    - name: Select config by branch
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          TARGET_BRANCH="${{ github.base_ref}}"
+        else
+          TARGET_BRANCH="${{ github.ref_name}}"
+        fi
+
+        echo "TARGET_BRANCH is $TARGET_BRANCH"
+
+        if [ "$TARGET_BRANCH" = "qa" ]; then
+          echo "ENV=qa" >> $GITHUB_ENV
+          echo "SAUCE_URL=${{ vars.QA_SAUCE_URL }}" >> $GITHUB_ENV
+          echo "SAUCE_USERNAME=${{ vars.QA_SAUCE_USERNAME }}" >> $GITHUB_ENV
+          echo "SAUCE_PASSWORD=${{ secrets.QA_SAUCE_PASSWORD }}" >> $GITHUB_ENV
+          echo "RUN_COMMAND=npm run qa" >> $GITHUB_ENV
+  
+        elif [ "$TARGET_BRANCH" = "main" ]; then
+          echo "ENV=uat" >> $GITHUB_ENV
+          echo "SAUCE_URL=${{ vars.UAT_SAUCE_URL }}" >> $GITHUB_ENV
+          echo "SAUCE_USERNAME=${{ vars.UAT_SAUCE_USERNAME }}" >> $GITHUB_ENV
+          echo "SAUCE_PASSWORD=${{ secrets.UAT_SAUCE_PASSWORD }}" >> $GITHUB_ENV
+          echo "RUN_COMMAND=npm run uat" >> $GITHUB_ENV
+        else
+          echo "Unknown target branch: $TARGET_BRANCH"
+          exit 1
+        fi
+
+    - name: Run Playwright tests
+      run: $RUN_COMMAND
+
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
