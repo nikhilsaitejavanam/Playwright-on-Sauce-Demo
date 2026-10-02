@@ -1,288 +1,393 @@
-import {expect,Page,Locator} from '@playwright/test';
-import {logger} from '../helpers/logger';
+import { expect, Page, Locator } from "@playwright/test";
+import { logger } from "../helpers/logger";
+import { get } from "http";
 
-export class DashboardPage{
+export class DashboardPage {
+  //Title locator
+  private readonly dashboardTitle: Locator;
+
+  //All products
+  private readonly allItemCards: Locator;
+  private readonly allProducts: Locator;
+  private readonly allProductsNames: Locator;
+  private readonly allProductsPrices: Locator;
+  private readonly allProductsCartBtns: Locator;
+
+  //Product filter button
+  private readonly productFilterBtn: Locator;
+
+  //Cart locator
+  private readonly cartBadgeCount: Locator;
+
+  //Menu locators
+  private readonly menuBtn: Locator;
+  private readonly allItemsBtn: Locator;
+  private readonly dynamicCatalogBtn: Locator;
+  private readonly lazyLoadContainer: Locator;
+  private readonly spinnerContainer: Locator;
+  private readonly sliderContainer: Locator;
+  private readonly lazyLoadItems: Locator;
+  private readonly spinnerItems: Locator;
+  private readonly sliderDots: Locator;
+  private readonly sliderItemName: Locator;
+  private readonly aboutBtn: Locator;
+  private readonly logoutBtn: Locator;
+  private readonly resetAppStateBtn: Locator;
+  private readonly menuCloseBtn: Locator;
+
+  constructor(private readonly page: Page) {
     //Title locator
-        private readonly dashboardTitle: Locator;
+    this.dashboardTitle = this.page.locator(".app_logo").first();
 
-        //All products
-        private readonly allItemCards: Locator;
-        private readonly allProducts: Locator;
-        private readonly allProductsNames: Locator;
-        private readonly allProductsPrices: Locator;
+    //All products
+    this.allItemCards = this.page.locator("div.inventory_item");
+    this.allProducts = this.page.locator("div.inventory_list");
+    this.allProductsNames = this.page.locator("div.inventory_item_name");
+    this.allProductsPrices = this.page.locator("div.inventory_item_price");
+    this.allProductsCartBtns = this.page.getByRole("button", {
+      name: "Add to cart",
+    });
 
-        //Product filter button
-        private readonly productFilterBtn: Locator;
+    //Product filter button
+    this.productFilterBtn = this.page.getByLabel("Sort products");
 
-        //Cart locator
-        private readonly cartIcon: Locator;
+    //Cart locator
+    this.cartBadgeCount = this.page.locator("span.shopping_cart_badge");
 
-        //Menu locators
-        private readonly menuBtn: Locator;
-        private readonly allItemsBtn: Locator;
-        private readonly dynamicCatalogBtn: Locator;
-        private readonly aboutBtn: Locator;
-        private readonly logoutBtn: Locator;
-        private readonly resetAppStateBtn: Locator;
-        private readonly menuCloseBtn: Locator;
+    //Menu locators
+    this.menuBtn = this.page.getByRole("button", { name: "Open Menu" });
+    this.allItemsBtn = this.page.getByRole("button", { name: "All Items" });
+    this.dynamicCatalogBtn = this.page.getByRole("button", {
+      name: "Dynamic Catalog",
+    });
+    this.lazyLoadContainer = this.page.locator(
+      "div.dynamic_catalog_lazy_load_container",
+    );
+    this.spinnerContainer = this.page.locator(
+      "div.dynamic_catalog_spinner_grid",
+    );
+    this.sliderContainer = this.page.locator(
+      "div.dynamic_catalog_slider_container",
+    );
+    this.lazyLoadItems = this.page.locator("div.dynamic_catalog_card");
+    this.spinnerItems = this.page.locator("div.dynamic_catalog_card");
+    this.sliderDots = this.page.locator("button.dynamic_catalog_slider_dot");
+    this.sliderItemName = this.page.locator("div.dynamic_catalog_card_name");
+    this.aboutBtn = this.page.getByRole("link", { name: "About" });
+    this.logoutBtn = this.page.getByRole("button", { name: "Logout" });
+    this.resetAppStateBtn = this.page.getByRole("button", {
+      name: "Reset App State",
+    });
+    this.menuCloseBtn = this.page.getByRole("button", { name: "Close Menu" });
+  }
 
-    constructor(private readonly page: Page){
-        //Title locator
-        this.dashboardTitle = this.page.locator('.app_logo').first();
+  /**
+   *
+   * @param productName The name of the product to locate.
+   * @returns
+   */
+  getProductCardByName(productName: string): Locator {
+    return this.allItemCards.filter({ hasText: productName });
+  }
 
-        //All products
-        this.allItemCards = this.page.locator('div.inventory_item');
-        this.allProducts = this.page.locator('div.inventory_list');
-        this.allProductsNames = this.page.locator('div.inventory_item_name');
-        this.allProductsPrices = this.page.locator('div.inventory_item_price');
+  /**
+   *
+   * @param productName The name of the product to locate the price for.
+   * @returns The locator for the product's price element.
+   */
+  getProductPriceByName(productName: string): Locator {
+    return this.getProductCardByName(productName).locator(
+      "div.inventory_item_price",
+    );
+  }
 
-        //Product filter button
-        this.productFilterBtn = this.page.getByLabel('Sort products');
+  /**
+   *
+   * @param productName The name of the product to locate the cart button for.
+   * @returns The locator for the product's cart button element.
+   */
+  getProductCartBtnByName(productName: string): Locator {
+    return this.getProductCardByName(productName).getByRole("button", {
+      name: "Add to cart",
+    });
+  }
 
-        //Cart locator
-        this.cartIcon = this.page.locator('a.shopping_cart_link'); //need to add count of products on icon
+  /**
+   *
+   * @param option The name of the dynamic catalog option to locate.
+   * @returns The locator for the specified dynamic catalog option button.
+   */
+  getDynamicCatalogOption(option: string): Locator {
+    return this.page.getByRole("button", { name: option });
+  }
 
-        //Menu locators
-        this.menuBtn = this.page.getByRole('button',{name:'Open Menu'});
-        this.allItemsBtn = this.page.getByRole('button',{name:'All Items'});
-        this.dynamicCatalogBtn = this.page.getByRole('button',{name:'Dynamic Catalog'}); //need to attached locators
-        this.aboutBtn = this.page.getByRole('link', { name: 'About' });
-        this.logoutBtn = this.page.getByRole('button',{name:'Logout'});
-        this.resetAppStateBtn = this.page.getByRole('button',{name:'Reset App State'});
-        this.menuCloseBtn = this.page.getByRole('button',{name:'Close Menu'});
+  /**
+   *
+   * @returns An array of all product names displayed on the dashboard.
+   */
+  async getAllProductsNames(): Promise<string[]> {
+    return await this.allProductsNames.allInnerTexts();
+  }
 
+  /**
+   *
+   * @returns An array of all product prices displayed on the dashboard.
+   */
+  async getAllProductsPrices(): Promise<number[]> {
+    const rawPrices = await this.allProductsPrices.allInnerTexts();
+    const parsedPrices = rawPrices.map((price) =>
+      parseFloat(price.replace("$", "")),
+    );
+    return parsedPrices;
+  }
+
+  /**
+   *
+   * @returns An array of locators for all product cart buttons displayed on the dashboard.
+   */
+  async getAllProductsCartBtns(): Promise<Locator[]> {
+    return await this.allProductsCartBtns.all();
+  }
+
+  /**
+   *
+   * @returns The number of items currently displayed in the cart badge.
+   */
+  async getCartBadgeCount(): Promise<number> {
+    const countText = (await this.cartBadgeCount.isVisible())
+      ? await this.cartBadgeCount.innerText()
+      : "0";
+    return parseInt(countText);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the dashboard title visibility has been checked.
+   */
+  async checkDashboardTitleVisibility(): Promise<void> {
+    await expect(this.dashboardTitle).toBeVisible();
+    logger.info(`Dashboard title is visible.`);
+  }
+
+  /**
+   *
+   * @param option The product filter option to apply.
+   * @returns A promise that resolves when the product filter has been applied.
+   */
+  async applyProductFilter(
+    option:
+      | "Name (A to Z)"
+      | "Name (Z to A)"
+      | "Price (low to high)"
+      | "Price (high to low)",
+  ): Promise<void> {
+    logger.info(`Applying product filter: ${option}`);
+    await this.productFilterBtn.selectOption(option);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the menu has been opened.
+   */
+  async openMenu(): Promise<void> {
+    await this.menuBtn.click();
+    logger.info(`Menu opened.`);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the visibility of all menu options has been checked.
+   */
+  async checkOpenMenuVisibility(): Promise<void> {
+    await expect(this.menuCloseBtn).toBeVisible();
+    await expect(this.allItemsBtn).toBeVisible();
+    await expect(this.dynamicCatalogBtn).toBeVisible();
+    await expect(this.aboutBtn).toBeVisible();
+    await expect(this.logoutBtn).toBeVisible();
+    await expect(this.resetAppStateBtn).toBeVisible();
+    logger.info(`Menu options are visible.`);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the 'All Items' option in the menu has been clicked.
+   */
+  async clickAllItemsInMenu(): Promise<void> {
+    await this.allItemsBtn.click();
+    logger.info(`Clicked 'All Items' in menu.`);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the visibility of all items on the dashboard has been checked.
+   */
+  async checkAllItemsVisibility(): Promise<void> {
+    await expect(this.allProducts).toBeVisible();
+    expect(await this.allItemCards.count()).toBeGreaterThan(0);
+    logger.info(`Items are visible.`);
+  }
+
+  /**
+   *
+   * @param option The dynamic catalog option to click.
+   * @returns A promise that resolves when the specified dynamic catalog option has been clicked.
+   */
+  async clickDynamicCatalog(
+    option: "Lazy Load" | "Spinner" | "Slider",
+  ): Promise<void> {
+    await this.dynamicCatalogBtn.click();
+    logger.info(`Clicked 'Dynamic Catalog' in menu.`);
+    await this.getDynamicCatalogOption(option).click();
+  }
+
+  /**
+   *
+   * @param option The dynamic catalog option to check.
+   * @returns A promise that resolves when the container for the specified dynamic catalog option is visible.
+   */
+  async checkDynamicCatalogContainer(
+    option: "Lazy Load" | "Spinner" | "Slider",
+  ): Promise<void> {
+    const container =
+      option === "Lazy Load"
+        ? this.lazyLoadContainer
+        : option === "Spinner"
+          ? this.spinnerContainer
+          : this.sliderContainer;
+    await expect(container).toBeVisible();
+    logger.info(`Dynamic Catalog container for '${option}' is visible.`);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the lazy load functionality has been checked.
+   */
+  async checkLazyLoad(): Promise<void> {
+    let previousHeight: number = 0;
+    let productsCount: number = await this.lazyLoadItems.count();
+    let count: number = productsCount;
+    for (let i = 0; i < 5; i++) {
+      const currentHeight = await this.page.evaluate(
+        () => document.body.scrollHeight,
+      );
+      if (currentHeight == previousHeight) break;
+      previousHeight = currentHeight;
+      await this.page.evaluate(() =>
+        window.scrollBy(0, document.body.scrollHeight),
+      );
+      productsCount += await this.lazyLoadItems.count();
+      await expect(productsCount).toBeGreaterThan(count);
+      count = productsCount;
+      logger.info(`Products count: ${productsCount}`);
+      await this.page.waitForTimeout(800); // Need to update
     }
+    logger.info(
+      `Lazy load check completed. Total products loaded: ${productsCount}`,
+    );
+  }
 
-    // Dynamic Locators
-    //Get product card by name
-    getProductCardByName(productName:string):Locator{
-        return this.allItemCards.filter({hasText: productName});
-    }
+  /**
+   *
+   * @returns A promise that resolves when the spinner functionality has been checked.
+   */
+  async checkSpinner(): Promise<void> {
+    expect(await this.spinnerItems.count()).toBeGreaterThan(0);
+    logger.info(`Spinner items are visible.`);
+  }
 
-    // Get Product Price By Name
-    getProductPriceByName(productName:string):Locator{
-        return this.getProductCardByName(productName).locator('div.inventory_item_price');
+  /**
+   *
+   * @returns A promise that resolves when the slider functionality has been checked.
+   */
+  async checkSlider(): Promise<void> {
+    const sliderDotsCount = await this.sliderDots.count();
+    for (let i = 0; i < sliderDotsCount; i++) {
+      const dot = this.sliderDots.nth(i);
+      await dot.click();
+      const ariaLabel = await dot.getAttribute("aria-label");
+      const itemName = await this.sliderItemName.textContent();
+      expect(ariaLabel).toContain(itemName);
+      logger.info(`Clicked slider dot with aria-label: '${ariaLabel}'.`);
+      logger.info(`Slider item name is: '${itemName}'.`);
     }
+  }
 
-    //Get Product Cart Button By Name
-    getProductCartBtnByName(productName:string):Locator{
-        return this.getProductCardByName(productName).getByRole('button',{name:'Add to cart'});
-    }
+  /**
+   *
+   * @returns A promise that resolves when the 'About' option in the menu has been clicked.
+   */
+  async clickAboutInMenu(): Promise<void> {
+    await this.aboutBtn.click();
+    await this.page.waitForLoadState("networkidle");
+    logger.info(`Clicked 'About' in menu.`);
+  }
 
-    //Methods to interact with the dashboard page
-    async getAllProductsNames():Promise<string[]>{
-        return await this.allProductsNames.allInnerTexts();
-    }
+  /**
+   *
+   * @returns A promise that resolves when the About page has been checked for correct navigation.
+   */
+  async checkAboutPage(): Promise<void> {
+    await expect(this.page).toHaveURL(`https://saucelabs.com/`);
+    logger.info(`Navigated to the About page.`);
+  }
 
-    async getAllProductsPrices():Promise<number[]>{
-        const rawPrices = await this.allProductsPrices.allInnerTexts();
-        const parsedPrices = rawPrices.map(price=>parseFloat(price.replace('$','')));
-        return parsedPrices;
-    }
+  /**
+   *
+   * @returns A promise that resolves when the 'Logout' option in the menu has been clicked.
+   */
+  async clickLogoutInMenu(): Promise<void> {
+    await this.logoutBtn.click();
+    await this.page.waitForLoadState("networkidle");
+    logger.info(`Clicked 'Logout' in menu.`);
+  }
 
-    async applyProductFilter(option:string):Promise<void>{
-        logger.info(`Applying product filter: ${option}`);
-        await this.productFilterBtn.selectOption(option);
+  /**
+   *
+   * @returns A promise that resolves when the logout functionality has been checked.
+   */
+  async checkLogoutInMenu(): Promise<void> {
+    await expect(this.page).toHaveURL(`https://www.saucedemo.com/`);
+    logger.info(`Successfully logged out and navigated to the login page.`);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the 'Reset App State' option in the menu has been clicked.
+   */
+  async clickResetAppStateInMenu(): Promise<void> {
+    await this.resetAppStateBtn.click();
+    logger.info(`Clicked 'Reset App State' in menu.`);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the menu has been closed.
+   */
+  async closeMenu(): Promise<void> {
+    await this.menuCloseBtn.click();
+    logger.info(`Menu closed.`);
+  }
+
+  /**
+   *
+   * @returns A promise that resolves when the visibility of the closed menu has been checked.
+   */
+  async checkMenuClosedVisibility(): Promise<void> {
+    await expect(this.menuCloseBtn).not.toBeVisible();
+    await expect(this.menuBtn).toBeVisible();
+    logger.info(`Menu is closed and not visible.`);
+  }
+
+  /**
+   *
+   * @param products An array of product names to add to the cart.
+   * @returns A promise that resolves when the specified products have been added to the cart.
+   */
+  async addToCartByNames(products: string[]): Promise<void> {
+    for (const product of products) {
+      const cartBtn = this.getProductCartBtnByName(product);
+      await cartBtn.click();
+      logger.info(`Clicked 'Add to Cart' for product: '${product}'.`);
     }
+  }
 }
-
-/*
-module.exports = class DashboardPage{
-
-    constructor(page){
-        this.page = page;
-
-        this.initilizeLocators();
-    }
-
-    initilizeLocators(){
-
-        //Title locator
-        this.dashboardTitle = this.page.locator('.app_logo').first();
-        this.productsText = this.page.locator('.title').first();
-
-        //All products
-        this.allProducts = this.page.locator('.inventory_item');
-        this.allProductsNames = this.page.locator('div.inventory_item_name[data-test="inventory-item-name"]');
-        this.allProductsPrices = this.page.locator('.inventory_item_price');
-
-        //Product filter button
-        this.productFilterBtn = this.page.locator('.product_sort_container').first();
-
-        //Cart locator
-        this.cartIcon = this.page.locator('.shopping_cart_link').first();
-
-        //Menu locators
-        this.menuBtn = this.page.locator('#react-burger-menu-btn').first();
-        this.allItemsBtn = this.page.locator('#inventory_sidebar_link').first();
-        this.aboutBtn = this.page.locator('#about_sidebar_link').first();
-        this.logoutBtn = this.page.locator('#logout_sidebar_link').first();
-        this.resetAppStateBtn = this.page.locator('#reset_sidebar_link').first();
-        this.menuCloseBtn = this.page.locator('#react-burger-cross-btn').first();
-
-        //sauce labs title
-        this.sauceLabsTitle = this.page.locator('(//img[@alt="Saucelabs"])[4]').first();
-
-        //login button
-        this.loginBtn = this.page.locator('#login-button').first();
-
-    }
-
-    getCartBtnByName(productName){
-        return this.page.locator(`//div[normalize-space()='${productName}']/../../../div[2]/button`);
-    }
-
-    getProductPriceByName(productName){
-        return this.page.locator(`//div[normalize-space()='${productName}']/../../../div[2]/div`);
-    }
-
-    async verifyProductsFilters(filter){
-        try{
-            console.log(`Verifying product filter: ${filter}`);
-            await this.productFilterBtn.selectOption(filter);
-            await this.page.waitForTimeout(parseInt(process.env.VERY_SHORT_TIMEOUT));
-            const productsCount = await this.allProducts.count();
-            console.log(`Total products found: ${productsCount}`);
-
-            let productNames = await this.allProductsNames.allTextContents();
-            console.log(`Product names: ${productNames}`);
-            let productPrices = (await this.allProductsPrices.allTextContents()).map(priceText=>parseFloat(priceText.replace('$','')));
-            console.log(`Product prices: ${productPrices}`);
-
-            switch(filter){
-                case 'az':
-                    let sortedNamesAZ = [...productNames].sort();
-                    console.log(`Sorted names A to Z: ${sortedNamesAZ}`);
-                    expect(productNames).toEqual(sortedNamesAZ);
-                    console.log('Products are sorted A to Z correctly.');
-                    return;
-                case 'za':
-                    let sortedNamesZA = [...productNames].sort().reverse();
-                    console.log(`Sorted names Z to A: ${sortedNamesZA}`);
-                    expect(productNames).toEqual(sortedNamesZA);
-                    console.log('Products are sorted Z to A correctly.');
-                    return;
-                case 'lohi':
-                    let sortedPricesLOHI = [...productPrices].sort((a,b)=>a-b);
-                    console.log(`Sorted prices Low to High: ${sortedPricesLOHI}`);
-                    expect(productPrices).toEqual(sortedPricesLOHI);
-                    console.log('Products are sorted by Price Low to High correctly.');
-                    return;
-                case 'hilo':
-                    let sortedPricesHILO = [...productPrices].sort((a,b)=>b-a);
-                    console.log(`Sorted prices High to Low: ${sortedPricesHILO}`);
-                    expect(productPrices).toEqual(sortedPricesHILO);
-                    console.log('Products are sorted by Price High to Low correctly.');
-                    return;
-            }
-
-            //Wait for products to be updated
-            await this.page.waitForTimeout(3000);
-        }catch(error){
-            console.error(`Error in verifyProductsFilters: ${error}`);
-            throw error;
-        }
-    }
-
-    async verifyMenuButtons(button){
-        try{
-            console.log('Verifying menu buttons functionality');
-            await this.menuBtn.click();
-            await this.page.waitForTimeout(parseInt(process.env.VERY_SHORT_TIMEOUT));
-            await expect(this.allItemsBtn).toBeVisible();
-            await expect(this.aboutBtn).toBeVisible();
-            await expect(this.logoutBtn).toBeVisible();
-            await expect(this.resetAppStateBtn).toBeVisible();
-            console.log('All menu buttons are visible.');
-            console.log(`Clicking on menu button: ${button}`);
-            switch(button){
-                case 'All Items':
-                    await this.allItemsBtn.click();
-                    await this.page.waitForTimeout(parseInt(process.env.VERY_SHORT_TIMEOUT));
-                    expect(await this.productsText.isVisible()).toBeTruthy();
-                    console.log('All Items button is working correctly.');
-                    await this.menuCloseBtn.click();
-                    await this.page.waitForTimeout(parseInt(process.env.VERY_SHORT_TIMEOUT));
-                    await expect(this.menuBtn).toBeVisible();
-                    expect(await this.allItemsBtn.isVisible()).toBeFalsy();
-                    expect(await this.aboutBtn.isVisible()).toBeFalsy();
-                    expect(await this.logoutBtn.isVisible()).toBeFalsy();
-                    expect(await this.resetAppStateBtn.isVisible()).toBeFalsy();
-                    console.log('Menu closed successfully.');
-                    return;
-                case 'About':
-                    await this.aboutBtn.click();
-                    await this.page.waitForTimeout(parseInt(process.env.TIMEOUT));
-                    const currentUrl = this.page.url();
-                    console.log(`Navigated to: ${currentUrl}`);
-                    expect(currentUrl).toContain('saucelabs.com');
-                    console.log('About button is working correctly - navigated to Sauce Labs website.');
-                    expect(await this.sauceLabsTitle.isVisible()).toBeTruthy();
-                    console.log('Sauce Labs title is visible on the About page.');
-                    return;
-                case 'Logout':
-                    await this.logoutBtn.click();
-                    await this.page.waitForTimeout(parseInt(process.env.VERY_SHORT_TIMEOUT));
-                    expect(await this.loginBtn.isVisible()).toBeTruthy();
-                    console.log('Logout button is working correctly.');
-                    return;
-                case 'Reset App State':
-                    await this.resetAppStateBtn.click();
-                    await this.page.waitForTimeout(parseInt(process.env.VERY_SHORT_TIMEOUT));
-                    expect(await this.productsText.isVisible()).toBeTruthy();
-                    console.log('Reset App State button is working correctly.');
-                    await this.menuCloseBtn.click();
-                    await this.page.waitForTimeout(parseInt(process.env.VERY_SHORT_TIMEOUT));
-                    await expect(this.menuBtn).toBeVisible();
-                    expect(await this.allItemsBtn.isVisible()).toBeFalsy();
-                    expect(await this.aboutBtn.isVisible()).toBeFalsy();
-                    expect(await this.logoutBtn.isVisible()).toBeFalsy();
-                    expect(await this.resetAppStateBtn.isVisible()).toBeFalsy();
-                    console.log('Menu closed successfully.');
-                    return;
-            }
-        }catch(error){
-            console.error(`Error in verifyMenuButtons: ${error}`);
-            throw error;
-        }
-    }
-
-    async getAllProductNames(){
-        try{
-            console.log('Fetching all product names from the dashboard.');
-            const productNames = await this.allProductsNames.allTextContents();
-            console.log(`Product names fetched: ${productNames}`);
-            return productNames;
-        }catch(error){
-            console.error(`Error in getAllProductsNames: ${error}`);
-            throw error;
-        }
-    }
-
-    async addToCartProductByName(productName){
-        try{
-            console.log(`Adding product to cart: ${productName}`);
-            const cartBtn = this.getCartBtnByName(productName);
-            expect(await cartBtn.textContent()).toBe('Add to cart');
-            const productPriceLocator = this.getProductPriceByName(productName);
-            const productPrice = parseFloat((await productPriceLocator.textContent()).split('$')[1]);
-            console.log(`Product price on dashboard: ${productPrice}`);
-            await cartBtn.click();
-            await this.page.waitForLoadState('networkidle',{timeout: process.env.LONG_TIMEOUT});
-            expect(await cartBtn.textContent()).toBe('Remove');
-            const cartIconCount = parseInt(await this.cartIcon.textContent());
-            console.log(`Cart icon count after adding product: ${cartIconCount}`);
-            expect(cartIconCount).toBeGreaterThan(0);
-            console.log(`Product "${productName}" added to cart successfully.`);
-            return {
-                name: productName,
-                price: productPrice
-            }
-        }catch(error){
-            console.error(`Error in addToCartProductByName: ${error}`);
-            throw error;
-        }
-    }
-
-}
-    */

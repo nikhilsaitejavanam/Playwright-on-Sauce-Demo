@@ -79,11 +79,15 @@ export class LoginPage {
     logger.info(
       `Logging in with username: ${username} and password: ${password}`,
     );
-    await expect(this.titleText).toBeVisible();
     await this.fillUsername(username);
     await this.fillPassword(password);
     await this.clickLoginButton();
     const { status, errorMessage } = await this.errorStatus();
     return { status, errorMessage };
+  }
+
+  async checkTitleVisibility(): Promise<void> {
+    await expect(this.titleText).toBeVisible();
+    logger.info(`Login page title is visible.`);
   }
 }
