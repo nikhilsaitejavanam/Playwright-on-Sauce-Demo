@@ -20,6 +20,15 @@ test.describe("Login Page Tests", () => {
   });
 
   test(
+    "Should display the login page title",
+    { tag: "@edge" },
+    async ({ page }) => {
+      await loginPage.checkTitleVisibility();
+      logger.info(`Login page title is visible`);
+    },
+  );
+
+  test(
     "Should login successfully with valid credentials",
     { tag: "@smoke" },
     async ({ page }) => {
