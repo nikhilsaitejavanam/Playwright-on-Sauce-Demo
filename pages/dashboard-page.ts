@@ -11,12 +11,12 @@ export class DashboardPage {
   private readonly allProducts: Locator;
   private readonly allProductsNames: Locator;
   private readonly allProductsPrices: Locator;
-  private readonly allProductsCartBtns: Locator;
 
   //Product filter button
   private readonly productFilterBtn: Locator;
 
   //Cart locator
+  private readonly cartIcon: Locator;
   private readonly cartBadgeCount: Locator;
 
   //Menu locators
@@ -44,14 +44,12 @@ export class DashboardPage {
     this.allProducts = this.page.locator("div.inventory_list");
     this.allProductsNames = this.page.locator("div.inventory_item_name");
     this.allProductsPrices = this.page.locator("div.inventory_item_price");
-    this.allProductsCartBtns = this.page.getByRole("button", {
-      name: "Add to cart",
-    });
 
     //Product filter button
     this.productFilterBtn = this.page.getByLabel("Sort products");
 
     //Cart locator
+    this.cartIcon = this.page.locator("a.shopping_cart_link");
     this.cartBadgeCount = this.page.locator("span.shopping_cart_badge");
 
     //Menu locators
@@ -112,6 +110,12 @@ export class DashboardPage {
     });
   }
 
+  getProductRemoveBtnByName(productName: string): Locator {
+    return this.getProductCardByName(productName).getByRole("button", {
+      name: "Remove",
+    });
+  }
+
   /**
    *
    * @param option The name of the dynamic catalog option to locate.
@@ -143,10 +147,12 @@ export class DashboardPage {
 
   /**
    *
-   * @returns An array of locators for all product cart buttons displayed on the dashboard.
+   * @param productName The name of the product to locate the individual price for.
+   * @returns The price of the specified product as a number.
    */
-  async getAllProductsCartBtns(): Promise<Locator[]> {
-    return await this.allProductsCartBtns.all();
+  async getIndividualProductPriceByName(productName: string): Promise<number> {
+    const rawPrice = await this.getProductPriceByName(productName).innerText();
+    return parseFloat(rawPrice.replace("$", ""));
   }
 
   /**
@@ -279,7 +285,7 @@ export class DashboardPage {
       await expect(productsCount).toBeGreaterThan(count);
       count = productsCount;
       logger.info(`Products count: ${productsCount}`);
-      await this.page.waitForTimeout(800); // Need to update
+      await this.page.waitForTimeout(1000); // Need to update
     }
     logger.info(
       `Lazy load check completed. Total products loaded: ${productsCount}`,
@@ -343,15 +349,6 @@ export class DashboardPage {
 
   /**
    *
-   * @returns A promise that resolves when the logout functionality has been checked.
-   */
-  async checkLogoutInMenu(): Promise<void> {
-    await expect(this.page).toHaveURL(`https://www.saucedemo.com/`);
-    logger.info(`Successfully logged out and navigated to the login page.`);
-  }
-
-  /**
-   *
    * @returns A promise that resolves when the 'Reset App State' option in the menu has been clicked.
    */
   async clickResetAppStateInMenu(): Promise<void> {
@@ -389,5 +386,29 @@ export class DashboardPage {
       await cartBtn.click();
       logger.info(`Clicked 'Add to Cart' for product: '${product}'.`);
     }
+  }
+
+  /**
+   *
+   * @param products An array of product names to remove from the cart.
+   * @returns A promise that resolves when the specified products have been removed from the cart.
+   */
+  async removeFromCartByNames(products: string[]): Promise<void> {
+    logger.info(`Removing products from the cart: ${products.join(", ")}`);
+    for (const product of products) {
+      const removeBtn = this.getProductRemoveBtnByName(product);
+      await removeBtn.click();
+    }
+  }
+
+  /**
+   * Opens the cart by clicking on the cart icon in the dashboard.
+   *
+   * @returns A promise that resolves when the cart has been opened.
+   */
+  async openCart(): Promise<void> {
+    await this.cartIcon.click();
+    await this.page.waitForLoadState("networkidle");
+    logger.info(`Opened the cart.`);
   }
 }

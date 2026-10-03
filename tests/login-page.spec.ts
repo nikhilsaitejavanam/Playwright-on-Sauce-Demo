@@ -20,11 +20,12 @@ test.describe("Login Page Tests", () => {
   });
 
   test(
-    "Should display the login page title",
+    "Should display the login page",
     { tag: "@edge" },
     async ({ page }) => {
       await loginPage.checkTitleVisibility();
-      logger.info(`Login page title is visible`);
+      await expect(page).toHaveURL(ENV_CONFIG.BASE_URL);
+      logger.info(`Login page is visible`);
     },
   );
 
