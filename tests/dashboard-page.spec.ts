@@ -22,10 +22,11 @@ test.describe("Dashboard page tests", () => {
   });
 
   test(
-    "Should display the dashboard title",
+    "Should display the dashboard page",
     { tag: "@edge" },
     async ({ page }) => {
       await dashboardPage.checkDashboardTitleVisibility();
+      await expect(page).toHaveURL(/\/inventory\.html/);
     },
   );
 
@@ -177,7 +178,7 @@ test.describe("Dashboard page tests", () => {
       async ({ page }) => {
         await dashboardPage.openMenu();
         await dashboardPage.clickLogoutInMenu();
-        await dashboardPage.checkLogoutInMenu();
+        await expect(page).toHaveURL(ENV_CONFIG.BASE_URL);
       },
     );
 
@@ -196,6 +197,40 @@ test.describe("Dashboard page tests", () => {
         const cartBadgeCountAfterReset =
           await dashboardPage.getCartBadgeCount();
         expect(cartBadgeCountAfterReset).toBe(0);
+      },
+    );
+  });
+
+  test.describe("Cart Badge Tests", () => {
+    test(
+      "Should display cart badge count when items are added to the cart",
+      { tag: "@edge" },
+      async ({ page }) => {
+        const allItems = await dashboardPage.getAllProductsNames();
+        await dashboardPage.addToCartByNames([allItems[0], allItems[1]]);
+        const cartBadgeCount = await dashboardPage.getCartBadgeCount();
+        expect(cartBadgeCount).toBe(2);
+      },
+    );
+
+    test(
+      "Should decrease badge count when an item is removed from the cart",
+      { tag: "@edge" },
+      async ({ page }) => {
+        const allItems = await dashboardPage.getAllProductsNames();
+        await dashboardPage.addToCartByNames([
+          allItems[0],
+          allItems[1],
+          allItems[4],
+        ]);
+        const cartBadgeCountBeforeRemoval =
+          await dashboardPage.getCartBadgeCount();
+        await dashboardPage.removeFromCartByNames([allItems[0], allItems[4]]);
+        const cartBadgeCountAfterRemoval =
+          await dashboardPage.getCartBadgeCount();
+        expect(cartBadgeCountAfterRemoval).toBe(
+          cartBadgeCountBeforeRemoval - 2,
+        );
       },
     );
   });
