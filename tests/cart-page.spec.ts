@@ -57,7 +57,7 @@ test.describe("Cart Page Tests", () => {
         await dashboardPage.addToCartByNames([
           allItems[0],
           allItems[1],
-          allItems[5],
+          allItems[4],
         ]);
         await dashboardPage.openCart();
         const cartBadgeCount = await cartPage.getCartBadgeCount();
