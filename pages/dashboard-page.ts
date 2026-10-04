@@ -323,8 +323,10 @@ export class DashboardPage {
    * @returns A promise that resolves when the 'About' option in the menu has been clicked.
    */
   async clickAboutInMenu(): Promise<void> {
-    await this.aboutBtn.click();
-    await this.page.waitForLoadState("networkidle");
+    await Promise.all([
+      this.page.waitForURL(`https://saucelabs.com/`),
+      this.aboutBtn.click()
+    ]);
     logger.info(`Clicked 'About' in menu.`);
   }
 

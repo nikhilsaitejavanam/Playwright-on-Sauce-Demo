@@ -17,16 +17,31 @@ logger.info(`Loaded environment configuration: ${ENV_CONFIG.ENV}`);
  */
 export default defineConfig({
   testDir: "./tests",
+  globalSetup: require.resolve("./helpers/global-setup"),
+  globalTeardown: require.resolve("./helpers/global-teardown"),
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!ENV_CONFIG.CI,
+  forbidOnly: ENV_CONFIG.CI,
   /* Retry on CI only */
   retries: ENV_CONFIG.CI ? 1 : 0,
   /* Opt out of parallel tests on CI. */
   workers: ENV_CONFIG.CI ? 6 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [["html"], ["allure-playwright"]],
+  reporter: [
+    ["html"],
+    [
+      "allure-playwright",
+      {
+        resultsDir: "allure-results",
+        environmentInfo: {
+          Environment: ENV_CONFIG.ENV,
+          BaseURL: ENV_CONFIG.BASE_URL,
+          CI: String(ENV_CONFIG.CI),
+        },
+      },
+    ],
+  ],
   // reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -80,6 +95,6 @@ export default defineConfig({
   // webServer: {
   //   command: 'npm run start',
   //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
+  //   reuseExistingServer: !ENV_CONFIG.CI,
   // },
 });
