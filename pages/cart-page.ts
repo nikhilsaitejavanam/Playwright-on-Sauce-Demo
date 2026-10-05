@@ -15,8 +15,6 @@ export class CartPage {
   //All products
   private readonly allItemCards: Locator;
   private readonly allProductsNames: Locator;
-  private readonly allProductsPrices: Locator;
-  private readonly allProductsRemoveBtn: Locator;
 
   constructor(private readonly page: Page) {
     // Title of the cart page
@@ -34,10 +32,6 @@ export class CartPage {
     // All products in the cart
     this.allItemCards = this.page.locator("div.cart_item");
     this.allProductsNames = this.page.locator("div.inventory_item_name");
-    this.allProductsPrices = this.page.locator("div.inventory_item_price");
-    this.allProductsRemoveBtn = this.page
-      .locator("div.cart_item")
-      .getByRole("button", { name: "Remove" });
   }
 
   /**
@@ -85,6 +79,7 @@ export class CartPage {
    * @returns The number of products currently in the cart.
    */
   async getProductCountInCart(): Promise<number> {
+    await this.allItemCards.first().waitFor();
     return await this.allItemCards.count();
   }
 
@@ -96,10 +91,13 @@ export class CartPage {
     const countText = (await this.cartBadgeCount.isVisible())
       ? await this.cartBadgeCount.innerText()
       : "0";
-    return parseInt(countText);
+    const count = parseInt(countText);
+    logger.info(`Cart badge count: ${count}`);
+    return count;
   }
 
   async getAllProductNamesInCart(): Promise<string[]> {
+    await this.allProductsNames.first().waitFor();
     const allProductNames = await this.allProductsNames.allTextContents();
     logger.info(`All product names in cart: ${allProductNames.join(", ")}`);
     return allProductNames;
@@ -137,8 +135,13 @@ export class CartPage {
    * @returns The price of the specified product as a number.
    */
   async getIndividualCartItemPriceByName(productName: string): Promise<number> {
+    await this.getProductPriceByName(productName).waitFor();
     const rawPrice = await this.getProductPriceByName(productName).innerText();
-    return parseFloat(rawPrice.replace("$", ""));
+    const parsedPrice = parseFloat(rawPrice.replace("$", ""));
+    logger.info(
+      `Parsed individual cart item price for ${productName}: ${parsedPrice}`,
+    );
+    return parsedPrice;
   }
 
   /**
