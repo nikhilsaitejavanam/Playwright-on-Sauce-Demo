@@ -138,6 +138,8 @@ test.describe('Checkout Page Tests', () => {
             const orderConfirmation = await checkoutPage.getOrderConfirmation();
             expect(orderConfirmation).toBe('Thank you for your order!');
         });
+
+        //need to add generate pdf test
     });
 
 });
