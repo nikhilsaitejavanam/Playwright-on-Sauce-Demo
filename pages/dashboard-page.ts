@@ -3,10 +3,10 @@ import { logger } from "../helpers/logger";
 import { get } from "http";
 
 export class DashboardPage {
-  //Title locator
+  //Title Locator
   private readonly dashboardTitle: Locator;
 
-  //All products
+  //All products related Locators
   private readonly allItemCards: Locator;
   private readonly allProducts: Locator;
   private readonly allProductsNames: Locator;
@@ -36,10 +36,10 @@ export class DashboardPage {
   private readonly menuCloseBtn: Locator;
 
   constructor(private readonly page: Page) {
-    //Title locator
+    //Title Locator
     this.dashboardTitle = this.page.locator(".app_logo").first();
 
-    //All products
+    //All products related Locators
     this.allItemCards = this.page.locator("div.inventory_item");
     this.allProducts = this.page.locator("div.inventory_list");
     this.allProductsNames = this.page.locator("div.inventory_item_name");
@@ -130,6 +130,7 @@ export class DashboardPage {
    * @returns An array of all product names displayed on the dashboard.
    */
   async getAllProductsNames(): Promise<string[]> {
+    await this.allProductsNames.first().waitFor();
     return await this.allProductsNames.allInnerTexts();
   }
 
@@ -138,10 +139,12 @@ export class DashboardPage {
    * @returns An array of all product prices displayed on the dashboard.
    */
   async getAllProductsPrices(): Promise<number[]> {
+    await this.allProductsPrices.first().waitFor();
     const rawPrices = await this.allProductsPrices.allInnerTexts();
     const parsedPrices = rawPrices.map((price) =>
       parseFloat(price.replace("$", "")),
     );
+    logger.info(`Parsed product prices: ${parsedPrices}`);
     return parsedPrices;
   }
 
@@ -152,7 +155,11 @@ export class DashboardPage {
    */
   async getIndividualProductPriceByName(productName: string): Promise<number> {
     const rawPrice = await this.getProductPriceByName(productName).innerText();
-    return parseFloat(rawPrice.replace("$", ""));
+    const parsedPrice = parseFloat(rawPrice.replace("$", ""));
+    logger.info(
+      `Parsed individual product price for ${productName}: ${parsedPrice}`,
+    );
+    return parsedPrice;
   }
 
   /**
@@ -163,7 +170,9 @@ export class DashboardPage {
     const countText = (await this.cartBadgeCount.isVisible())
       ? await this.cartBadgeCount.innerText()
       : "0";
-    return parseInt(countText);
+    const count = parseInt(countText);
+    logger.info(`Cart badge count: ${count}`);
+    return count;
   }
 
   /**
@@ -187,8 +196,8 @@ export class DashboardPage {
       | "Price (low to high)"
       | "Price (high to low)",
   ): Promise<void> {
-    logger.info(`Applying product filter: ${option}`);
     await this.productFilterBtn.selectOption(option);
+    logger.info(`Applied product filter: ${option}`);
   }
 
   /**
@@ -244,6 +253,7 @@ export class DashboardPage {
     await this.dynamicCatalogBtn.click();
     logger.info(`Clicked 'Dynamic Catalog' in menu.`);
     await this.getDynamicCatalogOption(option).click();
+    logger.info(`Clicked dynamic catalog option: ${option}`);
   }
 
   /**
@@ -270,6 +280,7 @@ export class DashboardPage {
    */
   async checkLazyLoad(): Promise<void> {
     let previousHeight: number = 0;
+    await this.lazyLoadItems.first().waitFor();
     let productsCount: number = await this.lazyLoadItems.count();
     let count: number = productsCount;
     for (let i = 0; i < 5; i++) {
@@ -281,6 +292,7 @@ export class DashboardPage {
       await this.page.evaluate(() =>
         window.scrollBy(0, document.body.scrollHeight),
       );
+      await this.lazyLoadItems.first().waitFor();
       productsCount += await this.lazyLoadItems.count();
       await expect(productsCount).toBeGreaterThan(count);
       count = productsCount;
@@ -297,6 +309,7 @@ export class DashboardPage {
    * @returns A promise that resolves when the spinner functionality has been checked.
    */
   async checkSpinner(): Promise<void> {
+    await this.spinnerItems.first().waitFor();
     expect(await this.spinnerItems.count()).toBeGreaterThan(0);
     logger.info(`Spinner items are visible.`);
   }
@@ -306,8 +319,11 @@ export class DashboardPage {
    * @returns A promise that resolves when the slider functionality has been checked.
    */
   async checkSlider(): Promise<void> {
+    await this.sliderDots.first().waitFor();
     const sliderDotsCount = await this.sliderDots.count();
     for (let i = 0; i < sliderDotsCount; i++) {
+      await this.sliderItemName.waitFor();
+      await this.sliderDots.first().waitFor();
       const dot = this.sliderDots.nth(i);
       await dot.click();
       const ariaLabel = await dot.getAttribute("aria-label");
@@ -325,7 +341,7 @@ export class DashboardPage {
   async clickAboutInMenu(): Promise<void> {
     await Promise.all([
       this.page.waitForURL(`https://saucelabs.com/`),
-      this.aboutBtn.click()
+      this.aboutBtn.click(),
     ]);
     logger.info(`Clicked 'About' in menu.`);
   }
@@ -400,6 +416,7 @@ export class DashboardPage {
     for (const product of products) {
       const removeBtn = this.getProductRemoveBtnByName(product);
       await removeBtn.click();
+      logger.info(`Clicked 'Remove from Cart' for product: '${product}'.`);
     }
   }
 
@@ -408,7 +425,7 @@ export class DashboardPage {
    *
    * @returns A promise that resolves when the cart has been opened.
    */
-  async openCart(): Promise<void> {
+  async navigateToCart(): Promise<void> {
     await this.cartIcon.click();
     await this.page.waitForLoadState("networkidle");
     logger.info(`Opened the cart.`);
