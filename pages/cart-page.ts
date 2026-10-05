@@ -99,6 +99,12 @@ export class CartPage {
     return parseInt(countText);
   }
 
+  async getAllProductNamesInCart(): Promise<string[]> {
+    const allProductNames = await this.allProductsNames.allTextContents();
+    logger.info(`All product names in cart: ${allProductNames.join(", ")}`);
+    return allProductNames;
+  }
+
   /**
    *
    * @param productNames An array of product names to check in the cart.
@@ -106,7 +112,7 @@ export class CartPage {
    */
   async checkAddedCartItems(productNames: string[]): Promise<void> {
     logger.info(`Checking added cart items: ${productNames.join(", ")}`);
-    const allCartItems = await this.allProductsNames.allTextContents();
+    const allCartItems = await this.getAllProductNamesInCart();
     for (const productName of productNames) {
       expect(allCartItems).toContain(productName);
     }
@@ -119,7 +125,7 @@ export class CartPage {
    */
   async checkRemovedCartItems(productNames: string[]): Promise<void> {
     logger.info(`Checking removed cart items: ${productNames.join(", ")}`);
-    const allCartItems = await this.allProductsNames.allTextContents();
+    const allCartItems = await this.getAllProductNamesInCart();
     for (const productName of productNames) {
       expect(allCartItems).not.toContain(productName);
     }
