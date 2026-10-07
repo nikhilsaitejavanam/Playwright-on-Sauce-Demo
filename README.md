@@ -9,210 +9,307 @@ The project uses:
 - `dotenv` for environment-based configuration
 - `winston` for console logging during test execution
 
-## What this project does
+# Playwright on Sauce Demo
 
-The current test suite focuses on two areas of the Sauce Demo site:
+Playwright automation framework for the Sauce Demo application using TypeScript, Page Object Model, HTML reporting, and Allure reporting.
+
+## Overview
+
+This project automates core Sauce Demo user flows:
 
 - Login validation
-- Product sorting on the dashboard page
+- Dashboard product sorting and menu interactions
+- Cart validation and cart badge behavior
+- Checkout flow validation
+- PDF download and PDF content verification after order completion
 
-The suite uses a page object model with separate page classes for the login page and dashboard page.
+The suite is organized with page objects under `pages/`, shared utilities under `helpers/`, and Playwright specs under `tests/`.
 
-## Current repository layout
+## Tech Stack
+
+- Playwright Test
+- TypeScript
+- `allure-playwright` for raw Allure results
+- `allure-commandline` for generating the HTML Allure report
+- `dotenv` for environment-specific config
+- `winston` for test execution logs
+- `pdf-parse` for validating generated PDF content
+
+## Project Structure
 
 ```text
 .
-├─ .env.example
-├─ .gitignore
-├─ package.json
-├─ package-lock.json
-├─ playwright.config.ts
-├─ README.md
-├─ config/
-│  └─ environment.ts
-├─ helpers/
-│  └─ logger.ts
-├─ pages/
-│  ├─ dashboard-page.ts
-│  └─ login-page.ts
-├─ tests/
-│  ├─ dashboard-page.spec.ts
-│  ├─ login-page.spec.ts
-│  └─ seed.spec.ts
-├─ specs/
-│  └─ README.md
 ├─ .github/
 │  ├─ agents/
 │  │  ├─ playwright-test-generator.agent.md
 │  │  ├─ playwright-test-healer.agent.md
 │  │  └─ playwright-test-planner.agent.md
 │  └─ workflows/
-│     ├─ copilot-setup-steps.yml
 │     └─ playwright.yml
 ├─ .vscode/
 │  └─ mcp.json
-├─ playwright-report/
-│  └─ index.html
-└─ test-results/
-	 └─ .last-run.json
+├─ config/
+│  └─ environment.ts
+├─ helpers/
+│  ├─ global-setup.ts
+│  ├─ global-teardown.ts
+│  └─ logger.ts
+├─ pages/
+│  ├─ cart-page.ts
+│  ├─ checkout-page.ts
+│  ├─ dashboard-page.ts
+│  └─ login-page.ts
+├─ tests/
+│  ├─ cart-page.spec.ts
+│  ├─ checkout-page.spec.ts
+│  ├─ dashboard-page.spec.ts
+│  └─ login-page.spec.ts
+├─ package.json
+├─ playwright.config.ts
+└─ README.md
 ```
 
-## Setup
+Generated directories such as `playwright-report/`, `test-results/`, `allure-results/`, and `allure-report/` can exist locally after test execution, but they are not source files.
 
-### Prerequisites
+## Prerequisites
 
-- Node.js 20 or newer
+- Node.js 20+
 - npm
 
-This project currently uses `@playwright/test@1.63.0`, and the lockfile indicates a Node.js 20+ runtime expectation.
+## Installation
 
-### Install dependencies
+Install dependencies:
 
 ```bash
 npm ci
 ```
 
-### Install Playwright browsers
+Install Playwright browsers:
 
 ```bash
 npx playwright install
 ```
 
-## Environment configuration
+For CI-style Linux setup, the workflow uses:
 
-Environment values are loaded by `config/environment.ts` from a file named `.env.<ENV>`.
-
-Example:
-
-- If `ENV=dev`, the project loads `.env.dev`
-- If `ENV=qa`, the project loads `.env.qa`
-
-There is an example file in the repo:
-
-```env
-ENV_NAME="example"
-SAUCE_URL=https://www.saucedemo.com/
-SAUCE_USERNAME="standard_user"
-SAUCE_PASSWORD="secret_sauce"
+```bash
+npx playwright install --with-deps
 ```
 
-Recommended local setup:
+## Environment Configuration
 
-1. Copy `.env.example` to `.env.dev`
-2. Update values if needed
-3. Run tests with `ENV=dev`
+Runtime configuration is loaded from `config/environment.ts`.
 
-On Windows PowerShell:
+The selected file is based on the `ENV` variable:
+
+- `ENV=dev` loads `.env.dev`
+- `ENV=qa` loads `.env.qa`
+- `ENV=uat` loads `.env.uat`
+
+Example template from `.env.example`:
+
+```env
+ENV="dev"
+SAUCE_URL="https://www.saucedemo.com/"
+SAUCE_USERNAME="standard_user"
+SAUCE_PASSWORD="secret_sauce"
+CI=false
+```
+
+Notes:
+
+- `.env.*` files are gitignored.
+- `BASE_URL`, credentials, and the CI flag are exposed through `ENV_CONFIG`.
+
+## Running Tests
+
+Available npm scripts:
+
+```bash
+npm run dev
+npm run qa
+npm run uat
+```
+
+What they do:
+
+- `npm run dev`: headed local run with `ENV=dev`
+- `npm run qa`: full suite with `ENV=qa`
+- `npm run uat`: smoke suite only with `ENV=uat`
+
+Useful direct Playwright commands:
+
+```bash
+npx playwright test
+npx playwright test tests/login-page.spec.ts
+npx playwright test tests/checkout-page.spec.ts --grep "PDF related"
+npx playwright test --grep @smoke
+npx playwright test --grep @edge
+npx playwright show-report
+```
+
+PowerShell example:
 
 ```powershell
 $env:ENV = "dev"
 npx playwright test
 ```
 
-Cross-platform alternative:
+## Playwright Configuration
 
-```bash
-npx cross-env ENV=dev playwright test
-```
+Current configuration in `playwright.config.ts`:
 
-## How tests run
-
-The Playwright configuration in `playwright.config.ts` is set up as follows:
-
-- Tests are read from `./tests`
+- Test directory: `tests/`
 - Browser project enabled: `chromium`
-- Reporter: `html`
-- Retries: `2` on CI, `0` locally
-- Workers: single worker on CI, default locally
-- Base URL comes from `ENV_CONFIG.BASE_URL`
-- Trace collection is currently disabled
+- `fullyParallel: true`
+- `forbidOnly` enabled on CI
+- `retries: 1` on CI, `0` locally
+- `workers: 6` on CI
+- `trace: retain-on-first-failure`
+- `screenshot: on-first-failure`
+- Reporters:
+	- Playwright HTML reporter
+	- Allure reporter with `allure-results/`
 
-## Test coverage in this repo
+The suite also uses:
 
-### Login tests
+- `globalSetup` to clear previous Allure outputs
+- `globalTeardown` to generate `allure-report/` from `allure-results/`
+
+## Test Coverage
+
+### Login
 
 `tests/login-page.spec.ts` covers:
 
-- Successful login with valid credentials
-- Login failure with invalid credentials
-- Login failure with empty credentials
+- Login page visibility
+- Successful login
+- Invalid login
+- Empty credential validation
 
-### Dashboard tests
+### Dashboard
 
 `tests/dashboard-page.spec.ts` covers:
 
-- Sort products by name ascending
-- Sort products by name descending
-- Sort products by price ascending
-- Sort products by price descending
+- Dashboard landing validation
+- Product sorting by name and price
+- Menu open and close behavior
+- Dynamic catalog flows: Lazy Load, Spinner, Slider
+- About navigation
+- Logout
+- Reset app state
+- Cart badge increments and decrements
 
-### Seed file
+### Cart
 
-`tests/seed.spec.ts` is a placeholder file with an empty sample test and is not currently implementing a real scenario.
+`tests/cart-page.spec.ts` covers:
 
-## Page objects
+- Navigation to cart and back to inventory
+- Cart badge count
+- Added items visibility
+- Price consistency between dashboard and cart
+- Item removal behavior
+
+### Checkout
+
+`tests/checkout-page.spec.ts` covers:
+
+- Checkout navigation flow
+- Required field validations
+- Overview totals and order confirmation
+- PDF download validation
+- PDF text verification with `pdf-parse`
+
+## Page Objects
 
 ### `pages/login-page.ts`
 
-Implements the login page object using Playwright locators and helper methods:
-
-- Fill username
-- Fill password
-- Click login
-- Read login error state
-- Execute the full login flow
+- Login form interactions
+- Login error handling
+- Title visibility assertion
 
 ### `pages/dashboard-page.ts`
 
-Implements the dashboard page object for product interactions:
+- Product listing and pricing helpers
+- Product sorting
+- Menu interactions
+- Dynamic catalog validation
+- Add to cart, remove from cart, and cart navigation
 
-- Read all product names
-- Read all product prices
-- Apply the product sort filter
-- Access product-specific locators by name
+### `pages/cart-page.ts`
 
-This file also contains a large commented legacy implementation. It is not active code, but it remains in the file as historical or in-progress content.
+- Cart content validation
+- Price lookup in cart
+- Remove item actions
+- Continue shopping and checkout navigation
+
+### `pages/checkout-page.ts`
+
+- Checkout form interactions
+- Validation error handling
+- Overview totals
+- Finish page assertions
+- PDF generation action
+
+## Reporting
+
+Two report formats are produced:
+
+### Playwright HTML Report
+
+Open locally with:
+
+```bash
+npx playwright show-report
+```
+
+### Allure Report
+
+Raw results are written to `allure-results/`.
+
+HTML output is generated into `allure-report/` during global teardown.
+
+Open locally with:
+
+```bash
+npm run allure:open
+```
+
+## CI Workflow
+
+GitHub Actions workflow: `.github/workflows/playwright.yml`
+
+It runs on:
+
+- Push to `main`
+- Push to `qa`
+- Pull requests targeting `main` or `qa`
+- Manual dispatch
+
+Workflow behavior:
+
+- Installs dependencies
+- Installs Playwright browsers and Linux dependencies
+- Chooses runtime environment from the target branch
+- Runs `npm run qa` for the `qa` branch
+- Runs `npm run uat` for the `main` branch
+- Uploads these artifacts:
+	- `playwright-report`
+	- `allure-results`
+	- `allure-report`
+
+Branch mapping:
+
+- `qa` branch uses QA variables and credentials
+- `main` branch uses UAT variables and credentials
 
 ## Logging
 
-`helpers/logger.ts` defines a shared Winston logger.
+`helpers/logger.ts` provides shared Winston console logging with timestamps and log levels. File logging is present in commented form and is not currently enabled.
 
-Current behavior:
+## Editor Integration
 
-- Logs are written to the console
-- Log level is `info`
-- File logging exists in commented form but is not enabled
-
-## CI and automation files
-
-### GitHub Actions
-
-`.github/workflows/playwright.yml`:
-
-- Runs on pushes and pull requests to `main` and `master`
-- Installs dependencies
-- Installs Playwright browsers
-- Runs the Playwright suite
-- Uploads the HTML report as an artifact
-
-`.github/workflows/copilot-setup-steps.yml`:
-
-- Installs dependencies and Playwright browsers
-- Includes a placeholder build step: `npx run build`
-
-That build command is likely not valid for this repository in its current state because there is no build script in `package.json`.
-
-### Copilot agent files
-
-The `.github/agents` directory contains three custom agent definitions used for AI-assisted Playwright workflows:
-
-- `playwright-test-generator.agent.md`: generates Playwright tests from test plans
-- `playwright-test-healer.agent.md`: debugs and repairs failing Playwright tests
-- `playwright-test-planner.agent.md`: explores the app and creates a structured test plan
-
-### VS Code MCP configuration
-
-`.vscode/mcp.json` configures a local MCP server entry for Playwright using:
+`.vscode/mcp.json` registers a Playwright MCP server using:
 
 ```json
 {
@@ -221,113 +318,11 @@ The `.github/agents` directory contains three custom agent definitions used for 
 }
 ```
 
-This supports Playwright tooling integration in compatible editor workflows.
+The repository also includes custom GitHub Copilot agent definitions under `.github/agents/` for test planning, generation, and healing workflows.
 
-## Generated outputs currently in the repo
+## Notes
 
-These are generated artifacts, not source files:
-
-- `playwright-report/index.html`: the Playwright HTML report bundle
-- `test-results/.last-run.json`: the last run summary
-
-At the time this README was generated, `.last-run.json` reports:
-
-- `status: passed`
-- `failedTests: []`
-
-The `.gitignore` is already configured to exclude Playwright outputs such as `playwright-report/` and `test-results/`.
-
-## File-by-file reference
-
-### Root files
-
-- `README.md`: project documentation
-- `package.json`: project metadata and direct dev dependencies
-- `package-lock.json`: pinned dependency graph for reproducible installs
-- `playwright.config.ts`: Playwright test runner configuration
-- `.env.example`: sample environment variables for local setup
-- `.gitignore`: ignore rules for Node.js, env files, and Playwright output
-
-### Config
-
-- `config/environment.ts`: resolves `.env.<ENV>` and exports runtime config values
-
-### Helpers
-
-- `helpers/logger.ts`: shared Winston logger configuration
-
-### Pages
-
-- `pages/login-page.ts`: login page object
-- `pages/dashboard-page.ts`: dashboard page object and legacy commented code
-
-### Tests
-
-- `tests/login-page.spec.ts`: login scenarios
-- `tests/dashboard-page.spec.ts`: dashboard sorting scenarios
-- `tests/seed.spec.ts`: placeholder seed test
-
-### Specs support
-
-- `specs/README.md`: notes that the directory is intended for test plans
-
-### GitHub and editor automation
-
-- `.github/workflows/playwright.yml`: CI workflow for Playwright test execution
-- `.github/workflows/copilot-setup-steps.yml`: Copilot setup workflow
-- `.github/agents/playwright-test-generator.agent.md`: AI agent definition for test generation
-- `.github/agents/playwright-test-healer.agent.md`: AI agent definition for test repair
-- `.github/agents/playwright-test-planner.agent.md`: AI agent definition for test planning
-- `.vscode/mcp.json`: MCP server registration for Playwright tooling
-
-### Generated artifacts
-
-- `playwright-report/index.html`: generated HTML report
-- `test-results/.last-run.json`: generated last-run status summary
-
-## Useful commands
-
-Run the full suite:
-
-```bash
-npx playwright test
-```
-
-Run only login tests:
-
-```bash
-npx playwright test tests/login-page.spec.ts
-```
-
-Run only dashboard tests:
-
-```bash
-npx playwright test tests/dashboard-page.spec.ts
-```
-
-Run tests with a tag filter:
-
-```bash
-npx playwright test --grep @smoke
-```
-
-Open the HTML report:
-
-```bash
-npx playwright show-report
-```
-
-## Current observations
-
-- The repository is a compact Playwright demo focused on login and product sorting flows.
-- The package is marked as `commonjs`, while the TypeScript files use ES-style imports and exports. That can be workable depending on toolchain behavior, but it is something to keep consistent.
-- `package.json` does not define npm scripts yet, so all execution is currently done through direct `npx playwright ...` commands.
-- `tests/dashboard-page.spec.ts` uses in-place array sorting in assertions, which mutates the original arrays. Copying arrays before sorting would make those assertions safer and easier to reason about.
-- `pages/dashboard-page.ts` still contains a commented legacy block, which makes the file harder to maintain than necessary.
-
+- Generated report folders are ignored by Git.
+- The project is configured as `commonjs` in `package.json`.
+- The checkout PDF assertions use parsed PDF text, which can differ slightly from on-screen text formatting.
 ## Suggested next cleanup steps
-
-1. Add standard npm scripts such as `test`, `test:smoke`, and `report`.
-2. Remove or move the commented legacy code from `pages/dashboard-page.ts`.
-3. Create a real `.env.dev` file locally and keep `.env.example` as the template.
-4. Replace mutable sort assertions with copied arrays in dashboard tests.

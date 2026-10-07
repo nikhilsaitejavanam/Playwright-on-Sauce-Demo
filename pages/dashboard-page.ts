@@ -1,6 +1,5 @@
 import { expect, Page, Locator } from "@playwright/test";
 import { logger } from "../helpers/logger";
-import { get } from "http";
 
 export class DashboardPage {
   //Title Locator

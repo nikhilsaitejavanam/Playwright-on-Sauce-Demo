@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { CartPage } from "../pages/cart-page";
-import { DashboardPage } from "../pages/dashboard-page";
 import { LoginPage } from "../pages/login-page";
+import { DashboardPage } from "../pages/dashboard-page";
+import { CartPage } from "../pages/cart-page";
 import { logger } from "../helpers/logger";
 
 import { ENV_CONFIG } from "../config/environment";

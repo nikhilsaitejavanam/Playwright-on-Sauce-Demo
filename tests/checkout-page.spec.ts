@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { CheckoutPage } from "../pages/checkout-page";
-import { CartPage } from "../pages/cart-page";
 import { LoginPage } from "../pages/login-page";
 import { DashboardPage } from "../pages/dashboard-page";
+import { CartPage } from "../pages/cart-page";
+import { CheckoutPage } from "../pages/checkout-page";
 import { logger } from "../helpers/logger";
 
+import { PDFParse } from "pdf-parse";
 import { ENV_CONFIG } from "../config/environment";
 
 let checkoutPage: CheckoutPage;
@@ -183,6 +184,57 @@ test.describe("Order related tests", () => {
       await checkoutPage.navigateToFinishPage();
       const orderConfirmation = await checkoutPage.getOrderConfirmation();
       expect(orderConfirmation).toBe("Thank you for your order!");
+    },
+  );
+});
+
+test.describe("PDF related tests", () => {
+  test(
+    "Should download a PDF when generate pdf order is clicked",
+    { tag: "@edge" },
+    async ({ page }) => {
+      await cartPage.navigateToCheckout();
+      await checkoutPage.fillCheckoutForm("John", "Doe", "12345");
+      await checkoutPage.navigateToOverview();
+      await checkoutPage.navigateToFinishPage();
+      const downloadedFile = await Promise.all([
+        page.waitForEvent("download"),
+        checkoutPage.generatePDF(),
+      ]);
+      const fileName = downloadedFile[0].suggestedFilename();
+      expect(fileName).toMatch(
+        /swag-labs-order-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.pdf/,
+      );
+    },
+  );
+
+  test(
+    "Should display order details inside the generated PDF",
+    { tag: "@edge" },
+    async ({ page }) => {
+      await cartPage.navigateToCheckout();
+      await checkoutPage.fillCheckoutForm("John", "Doe", "12345");
+      await checkoutPage.navigateToOverview();
+      await checkoutPage.navigateToFinishPage();
+      const downloadedFile = await Promise.all([
+        page.waitForEvent("download"),
+        checkoutPage.generatePDF(),
+      ]);
+      const filePath = await downloadedFile[0].path();
+      const pdfStream = await downloadedFile[0].createReadStream();
+      expect(pdfStream).not.toBeNull();
+      const chunks: Buffer[] = [];
+      for await (const chunk of pdfStream) {
+        chunks.push(chunk);
+      }
+      const pdfBytes = new Uint8Array(Buffer.concat(chunks));
+      const pdfParse = new PDFParse({ data: pdfBytes });
+      const pdfData = await pdfParse.getText();
+      const pdfText = pdfData.text;
+      expect(pdfText).toContain("Order Receipt");
+      expect(pdfText).toContain(
+        "Thank you for your order! It has been dispatched, and will arrive just as fast as the pony can get there.",
+      );
     },
   );
 });
