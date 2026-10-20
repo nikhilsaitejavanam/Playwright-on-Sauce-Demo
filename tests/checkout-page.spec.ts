@@ -20,10 +20,11 @@ test.beforeEach(async ({ page }) => {
   dashboardPage = new DashboardPage(page);
   await page.goto("/");
   await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await page.waitForLoadState("networkidle");
+  await dashboardPage.checkDashboardTitleVisibility();
   const allItems = await dashboardPage.getAllProductsNames();
   await dashboardPage.addToCartByNames([allItems[0], allItems[1], allItems[4]]);
   await dashboardPage.navigateToCart();
+  await cartPage.checkCartTitle();
 });
 
 test.afterEach(async ({ page }) => {

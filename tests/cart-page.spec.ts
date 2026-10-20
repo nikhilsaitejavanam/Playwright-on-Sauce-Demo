@@ -16,12 +16,7 @@ test.beforeEach(async ({ page }) => {
   cartPage = new CartPage(page);
   await page.goto("/");
   await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await page.waitForLoadState("networkidle");
-});
-
-test.afterEach(async ({ page }) => {
-  logger.info(`Test completed, closing page`);
-  await page.close();
+  await dashboardPage.checkDashboardTitleVisibility();
 });
 
 test.describe("Navigation Tests", () => {

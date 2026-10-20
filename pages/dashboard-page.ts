@@ -109,6 +109,11 @@ export class DashboardPage {
     });
   }
 
+  /**
+   *
+   * @param productName The name of the product to locate the remove button for.
+   * @returns The locator for the product's remove button element.
+   */
   getProductRemoveBtnByName(productName: string): Locator {
     return this.getProductCardByName(productName).getByRole("button", {
       name: "Remove",
@@ -278,25 +283,19 @@ export class DashboardPage {
    * @returns A promise that resolves when the lazy load functionality has been checked.
    */
   async checkLazyLoad(): Promise<void> {
-    let previousHeight: number = 0;
-    await this.lazyLoadItems.first().waitFor();
+    await expect(this.lazyLoadItems.first()).toBeVisible();
     let productsCount: number = await this.lazyLoadItems.count();
-    let count: number = productsCount;
     for (let i = 0; i < 5; i++) {
-      const currentHeight = await this.page.evaluate(
-        () => document.body.scrollHeight,
-      );
-      if (currentHeight == previousHeight) break;
-      previousHeight = currentHeight;
       await this.page.evaluate(() =>
         window.scrollBy(0, document.body.scrollHeight),
       );
-      await this.lazyLoadItems.first().waitFor();
-      productsCount += await this.lazyLoadItems.count();
-      await expect(productsCount).toBeGreaterThan(count);
-      count = productsCount;
-      logger.info(`Products count: ${productsCount}`);
-      await this.page.waitForTimeout(1000); // Need to update
+      await expect.poll(async()=> await this.lazyLoadItems.count(), { timeout: 5000 }).toBeGreaterThan(productsCount);
+      const currentCount: number = await this.lazyLoadItems.count();
+      logger.info(`Current count of lazy load items: ${currentCount}`);
+      if(currentCount == productsCount) {
+        break;
+      }
+      productsCount = currentCount;
     }
     logger.info(
       `Lazy load check completed. Total products loaded: ${productsCount}`,
@@ -339,7 +338,7 @@ export class DashboardPage {
    */
   async clickAboutInMenu(): Promise<void> {
     await Promise.all([
-      this.page.waitForURL(`https://saucelabs.com/`),
+      this.page.waitForURL(`https://saucelabs.com/`,{waitUntil: 'domcontentloaded'}),
       this.aboutBtn.click(),
     ]);
     logger.info(`Clicked 'About' in menu.`);
@@ -360,7 +359,6 @@ export class DashboardPage {
    */
   async clickLogoutInMenu(): Promise<void> {
     await this.logoutBtn.click();
-    await this.page.waitForLoadState("networkidle");
     logger.info(`Clicked 'Logout' in menu.`);
   }
 
@@ -426,7 +424,6 @@ export class DashboardPage {
    */
   async navigateToCart(): Promise<void> {
     await this.cartIcon.click();
-    await this.page.waitForLoadState("networkidle");
     logger.info(`Opened the cart.`);
   }
 }

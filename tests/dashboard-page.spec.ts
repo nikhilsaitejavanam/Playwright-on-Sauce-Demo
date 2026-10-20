@@ -13,12 +13,7 @@ test.beforeEach(async ({ page }) => {
   dashboardPage = new DashboardPage(page);
   await page.goto("/");
   await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await page.waitForLoadState("networkidle");
-});
-
-test.afterEach(async ({ page }) => {
-  logger.info(`Test completed, closing page`);
-  await page.close();
+  await dashboardPage.checkDashboardTitleVisibility();
 });
 
 test(
@@ -174,6 +169,7 @@ test.describe("Menu interaction tests", () => {
     async ({ page }) => {
       await dashboardPage.openMenu();
       await dashboardPage.clickLogoutInMenu();
+      await loginPage.checkTitleVisibility();
       await expect(page).toHaveURL(ENV_CONFIG.BASE_URL);
     },
   );

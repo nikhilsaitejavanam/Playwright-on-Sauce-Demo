@@ -9,13 +9,8 @@ let loginPage: LoginPage;
 test.beforeEach(async ({ page }) => {
   loginPage = new LoginPage(page);
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await loginPage.checkTitleVisibility();
   logger.info(`Navigated to Application`);
-});
-
-test.afterEach(async ({ page }) => {
-  logger.info(`Test completed, closing page`);
-  await page.close();
 });
 
 test("Should display the login page", { tag: "@edge" }, async ({ page }) => {
