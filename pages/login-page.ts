@@ -32,7 +32,7 @@ export class LoginPage {
    */
   async fillUsername(username: string): Promise<void> {
     await this.usernameInput.fill(username);
-    logger.info(`Filled username with: ${username}`);
+    logger.info(`Filled given username`);
   }
 
   /**
@@ -41,7 +41,7 @@ export class LoginPage {
    */
   async fillPassword(password: string): Promise<void> {
     await this.passwordInput.fill(password);
-    logger.info(`Filled password with: ${password}`);
+    logger.info(`Filled given password`);
   }
 
   /**
@@ -79,9 +79,7 @@ export class LoginPage {
     username: string,
     password: string,
   ): Promise<{ status: boolean; errorMessage: string }> {
-    logger.info(
-      `Logging in with username: ${username} and password: ${password}`,
-    );
+    logger.info(`Logging in with given username and password`);
     await this.fillUsername(username);
     await this.fillPassword(password);
     await this.clickLoginButton();

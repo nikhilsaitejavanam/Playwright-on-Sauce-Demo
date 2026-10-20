@@ -1,5 +1,4 @@
 import winston from 'winston';
-import path from 'path';
 
 // Custom format for console output: keeps the ANSI color codes on the level tag
 const consoleFormat = winston.format.printf(({ level, message, timestamp }) => {

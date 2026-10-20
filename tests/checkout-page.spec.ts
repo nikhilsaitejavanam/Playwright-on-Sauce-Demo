@@ -20,10 +20,11 @@ test.beforeEach(async ({ page }) => {
   dashboardPage = new DashboardPage(page);
   await page.goto("/");
   await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await page.waitForLoadState("networkidle");
+  await dashboardPage.checkDashboardTitleVisibility();
   const allItems = await dashboardPage.getAllProductsNames();
   await dashboardPage.addToCartByNames([allItems[0], allItems[1], allItems[4]]);
   await dashboardPage.navigateToCart();
+  await cartPage.checkCartTitle();
 });
 
 test.afterEach(async ({ page }) => {
@@ -93,7 +94,7 @@ test.describe("Error Handling Tests", () => {
   test(
     "Should display error message when First Name missed in checkout form",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await cartPage.navigateToCheckout();
       await checkoutPage.fillLastName("Doe");
       await checkoutPage.fillPostalCode("12345");
@@ -107,7 +108,7 @@ test.describe("Error Handling Tests", () => {
   test(
     "Should display error message when Last Name missed in checkout form",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await cartPage.navigateToCheckout();
       await checkoutPage.fillFirstName("John");
       await checkoutPage.fillPostalCode("12345");
@@ -121,7 +122,7 @@ test.describe("Error Handling Tests", () => {
   test(
     "Should display error message when Postal Code is missed in checkout form",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await cartPage.navigateToCheckout();
       await checkoutPage.fillFirstName("John");
       await checkoutPage.fillLastName("Doe");
@@ -137,7 +138,7 @@ test.describe("Order related tests", () => {
   test(
     "Should display products in checkout overview page which were added to cart",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const allProductNamesInCart = await cartPage.getAllProductNamesInCart();
       await cartPage.navigateToCheckout();
       await checkoutPage.fillCheckoutForm("John", "Doe", "12345");
@@ -153,7 +154,7 @@ test.describe("Order related tests", () => {
   test(
     "Should display correct subtotal,total in checkout overview page",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await cartPage.navigateToCheckout();
       await checkoutPage.fillCheckoutForm("John", "Doe", "12345");
       await checkoutPage.navigateToOverview();
@@ -177,7 +178,7 @@ test.describe("Order related tests", () => {
   test(
     "Should display order confirmation in finish page",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await cartPage.navigateToCheckout();
       await checkoutPage.fillCheckoutForm("John", "Doe", "12345");
       await checkoutPage.navigateToOverview();
@@ -220,7 +221,6 @@ test.describe("PDF related tests", () => {
         page.waitForEvent("download"),
         checkoutPage.generatePDF(),
       ]);
-      const filePath = await downloadedFile[0].path();
       const pdfStream = await downloadedFile[0].createReadStream();
       expect(pdfStream).not.toBeNull();
       const chunks: Buffer[] = [];

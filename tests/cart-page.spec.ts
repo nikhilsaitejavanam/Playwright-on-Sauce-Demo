@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import { LoginPage } from "../pages/login-page";
 import { DashboardPage } from "../pages/dashboard-page";
 import { CartPage } from "../pages/cart-page";
-import { logger } from "../helpers/logger";
 
 import { ENV_CONFIG } from "../config/environment";
 
@@ -16,12 +15,7 @@ test.beforeEach(async ({ page }) => {
   cartPage = new CartPage(page);
   await page.goto("/");
   await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await page.waitForLoadState("networkidle");
-});
-
-test.afterEach(async ({ page }) => {
-  logger.info(`Test completed, closing page`);
-  await page.close();
+  await dashboardPage.checkDashboardTitleVisibility();
 });
 
 test.describe("Navigation Tests", () => {
@@ -52,7 +46,7 @@ test.describe("Cart Badge and Item Tests", () => {
   test(
     "Should display cart badge count when items are added to the cart",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const allItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([
         allItems[0],
@@ -68,7 +62,7 @@ test.describe("Cart Badge and Item Tests", () => {
   test(
     "Should display added cart items in the cart",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const allItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([
         allItems[0],
@@ -87,7 +81,7 @@ test.describe("Cart Badge and Item Tests", () => {
   test(
     "Should display same item prices in the cart as on the dashboard",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const allItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([allItems[4]]);
       const dashboardPrice =
@@ -103,7 +97,7 @@ test.describe("Cart Badge and Item Tests", () => {
   test(
     "Should display decreased cart badge count when an item is removed from the cart",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const allItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([
         allItems[0],
@@ -121,7 +115,7 @@ test.describe("Cart Badge and Item Tests", () => {
   test(
     "Should remove cart items from the cart",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const allItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([
         allItems[0],

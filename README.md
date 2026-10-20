@@ -1,16 +1,5 @@
 # Playwright on Sauce Demo
 
-This repository contains a small Playwright test automation project for the Sauce Demo application at `https://www.saucedemo.com/`.
-
-The project uses:
-
-- Playwright Test for browser automation and assertions
-- TypeScript for page objects, tests, and config
-- `dotenv` for environment-based configuration
-- `winston` for console logging during test execution
-
-# Playwright on Sauce Demo
-
 Playwright automation framework for the Sauce Demo application using TypeScript, Page Object Model, HTML reporting, and Allure reporting.
 
 ## Overview
@@ -29,6 +18,7 @@ The suite is organized with page objects under `pages/`, shared utilities under 
 
 - Playwright Test
 - TypeScript
+- ESLint with `typescript-eslint` for code quality checks
 - `allure-playwright` for raw Allure results
 - `allure-commandline` for generating the HTML Allure report
 - `dotenv` for environment-specific config
@@ -64,8 +54,10 @@ The suite is organized with page objects under `pages/`, shared utilities under 
 │  ├─ checkout-page.spec.ts
 │  ├─ dashboard-page.spec.ts
 │  └─ login-page.spec.ts
+├─ eslint.config.mjs
 ├─ package.json
 ├─ playwright.config.ts
+├─ tsconfig.json
 └─ README.md
 ```
 
@@ -126,6 +118,7 @@ Notes:
 Available npm scripts:
 
 ```bash
+npm test
 npm run dev
 npm run qa
 npm run uat
@@ -133,6 +126,7 @@ npm run uat
 
 What they do:
 
+- `npm test`: full suite using the current `ENV` value, or `dev` by default
 - `npm run dev`: headed local run with `ENV=dev`
 - `npm run qa`: full suite with `ENV=qa`
 - `npm run uat`: smoke suite only with `ENV=uat`
@@ -154,6 +148,22 @@ PowerShell example:
 $env:ENV = "dev"
 npx playwright test
 ```
+
+## Code Quality Checks
+
+Run these checks before running browser tests or opening a pull request:
+
+```bash
+npm run typecheck
+npm run lint
+```
+
+- `npm run typecheck`: runs `tsc --noEmit` using `tsconfig.json` to check types without generating JavaScript files.
+- `npm run lint`: runs ESLint using `eslint.config.mjs` to check code quality, including unused variables and explicit `any` types.
+
+Neither command runs browser tests or automatically fixes code. Playwright runs TypeScript tests without full type checking, so `npm test` does not replace these checks.
+
+New TypeScript files under `config/`, `helpers/`, `pages/`, and `tests/` are included in the type check, along with `playwright.config.ts`.
 
 ## Playwright Configuration
 
@@ -289,6 +299,7 @@ It runs on:
 Workflow behavior:
 
 - Installs dependencies
+- Runs `npm run typecheck` and `npm run lint`; a failure prevents browser installation and test execution
 - Installs Playwright browsers and Linux dependencies
 - Chooses runtime environment from the target branch
 - Runs `npm run qa` for the `qa` branch
@@ -325,4 +336,3 @@ The repository also includes custom GitHub Copilot agent definitions under `.git
 - Generated report folders are ignored by Git.
 - The project is configured as `commonjs` in `package.json`.
 - The checkout PDF assertions use parsed PDF text, which can differ slightly from on-screen text formatting.
-## Suggested next cleanup steps
