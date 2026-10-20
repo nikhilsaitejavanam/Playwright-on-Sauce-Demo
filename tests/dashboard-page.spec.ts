@@ -29,7 +29,7 @@ test.describe("Products Filter tests", () => {
   test(
     "Should filter products when Ascending order on names appliead",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const namesBefore = await dashboardPage.getAllProductsNames();
       logger.info(`Names before applying ascending filter: ${namesBefore}`);
       await dashboardPage.applyProductFilter("Name (A to Z)");
@@ -45,7 +45,7 @@ test.describe("Products Filter tests", () => {
   test(
     "Should filter products when Descending order on names applied",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const namesBefore = await dashboardPage.getAllProductsNames();
       logger.info(`Names before applying descending filter: ${namesBefore}`);
       await dashboardPage.applyProductFilter("Name (Z to A)");
@@ -61,7 +61,7 @@ test.describe("Products Filter tests", () => {
   test(
     "Should filter products when Ascending order on prices appliead",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const pricesBefore = await dashboardPage.getAllProductsPrices();
       logger.info(`Prices before applying ascending filter: ${pricesBefore}`);
       await dashboardPage.applyProductFilter("Price (low to high)");
@@ -75,7 +75,7 @@ test.describe("Products Filter tests", () => {
   test(
     "Should filter products when Descending order on prices applied",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const pricesBefore = await dashboardPage.getAllProductsPrices();
       logger.info(`Prices before applying descending filter: ${pricesBefore}`);
       await dashboardPage.applyProductFilter("Price (high to low)");
@@ -91,7 +91,7 @@ test.describe("Menu interaction tests", () => {
   test(
     "Should open the menu and display all options",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await dashboardPage.openMenu();
       await dashboardPage.checkOpenMenuVisibility();
     },
@@ -100,7 +100,7 @@ test.describe("Menu interaction tests", () => {
   test(
     "Should close the menu when the close button is clicked",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await dashboardPage.openMenu();
       await dashboardPage.closeMenu();
       await dashboardPage.checkMenuClosedVisibility();
@@ -110,7 +110,7 @@ test.describe("Menu interaction tests", () => {
   test(
     'Should display all items when the "All Items" button is clicked in the menu',
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await dashboardPage.openMenu();
       await dashboardPage.clickDynamicCatalog("Lazy Load");
       await dashboardPage.checkDynamicCatalogContainer("Lazy Load");
@@ -123,7 +123,7 @@ test.describe("Menu interaction tests", () => {
   test(
     'Should display products in lazy load when the "Lazy Load" option is clicked in the dynamic catalog',
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await dashboardPage.openMenu();
       await dashboardPage.clickDynamicCatalog("Lazy Load");
       await dashboardPage.checkDynamicCatalogContainer("Lazy Load");
@@ -134,7 +134,7 @@ test.describe("Menu interaction tests", () => {
   test(
     'Should display products in spinner when the "Spinner" option is clicked in the dynamic catalog',
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await dashboardPage.openMenu();
       await dashboardPage.clickDynamicCatalog("Spinner");
       await dashboardPage.checkDynamicCatalogContainer("Spinner");
@@ -145,7 +145,7 @@ test.describe("Menu interaction tests", () => {
   test(
     'Should display products in slider when the "Slider" option is clicked in the dynamic catalog',
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await dashboardPage.openMenu();
       await dashboardPage.clickDynamicCatalog("Slider");
       await dashboardPage.checkDynamicCatalogContainer("Slider");
@@ -156,7 +156,7 @@ test.describe("Menu interaction tests", () => {
   test(
     'Should navigate to the About page when the "About" option is clicked in the menu',
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       await dashboardPage.openMenu();
       await dashboardPage.clickAboutInMenu();
       await dashboardPage.checkAboutPage();
@@ -177,7 +177,7 @@ test.describe("Menu interaction tests", () => {
   test(
     "Should display initial state of dashboard page after resetting app state",
     { tag: "@smoke" },
-    async ({ page }) => {
+    async () => {
       const AllItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([AllItems[0], AllItems[4]]);
       const cartBadgeCountBeforeReset = await dashboardPage.getCartBadgeCount();
@@ -195,7 +195,7 @@ test.describe("Cart Badge Tests", () => {
   test(
     "Should display cart badge count when items are added to the cart",
     { tag: "@edge" },
-    async ({ page }) => {
+    async () => {
       const allItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([allItems[0], allItems[1]]);
       const cartBadgeCount = await dashboardPage.getCartBadgeCount();
@@ -206,7 +206,7 @@ test.describe("Cart Badge Tests", () => {
   test(
     "Should decrease badge count when an item is removed from the cart",
     { tag: "@edge" },
-    async ({ page }) => {
+    async () => {
       const allItems = await dashboardPage.getAllProductsNames();
       await dashboardPage.addToCartByNames([
         allItems[0],

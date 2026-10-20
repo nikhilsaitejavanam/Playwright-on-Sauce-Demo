@@ -22,8 +22,8 @@ test("Should display the login page", { tag: "@edge" }, async ({ page }) => {
 test(
   "Should login successfully with valid credentials",
   { tag: "@smoke" },
-  async ({ page }) => {
-    const { status, errorMessage } = await loginPage.login(
+  async () => {
+    const { status } = await loginPage.login(
       ENV_CONFIG.SAUCE_USERNAME,
       ENV_CONFIG.SAUCE_PASSWORD,
     );
@@ -35,7 +35,7 @@ test(
 test(
   "Should fail login with invalid credentials",
   { tag: "@smoke" },
-  async ({ page }) => {
+  async () => {
     const { status, errorMessage } = await loginPage.login(
       "invalid_user",
       "invalid_sauce",
@@ -48,13 +48,9 @@ test(
   },
 );
 
-test(
-  "Should fail login with empty credentials",
-  { tag: "@edge" },
-  async ({ page }) => {
-    const { status, errorMessage } = await loginPage.login("", "");
-    expect(status).toBe(false);
-    logger.info(`Login failed as expected with empty credentials`);
-    expect(errorMessage).toBe("Epic sadface: Username is required");
-  },
-);
+test("Should fail login with empty credentials", { tag: "@edge" }, async () => {
+  const { status, errorMessage } = await loginPage.login("", "");
+  expect(status).toBe(false);
+  logger.info(`Login failed as expected with empty credentials`);
+  expect(errorMessage).toBe("Epic sadface: Username is required");
+});
