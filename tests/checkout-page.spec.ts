@@ -1,30 +1,25 @@
 import { test, expect } from "@playwright/test";
-import { LoginPage } from "../pages/login-page";
 import { DashboardPage } from "../pages/dashboard-page";
 import { CartPage } from "../pages/cart-page";
 import { CheckoutPage } from "../pages/checkout-page";
 import { logger } from "../helpers/logger";
 
 import { PDFParse } from "pdf-parse";
-import { ENV_CONFIG } from "../config/environment";
 
 let checkoutPage: CheckoutPage;
 let cartPage: CartPage;
-let loginPage: LoginPage;
 let dashboardPage: DashboardPage;
+
+test.use({ storageState: "helpers/storage-state.json" });
 
 test.beforeEach(async ({ page }) => {
   checkoutPage = new CheckoutPage(page);
   cartPage = new CartPage(page);
-  loginPage = new LoginPage(page);
   dashboardPage = new DashboardPage(page);
-  await page.goto("/");
-  await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await dashboardPage.checkDashboardTitleVisibility();
+  await page.goto("/inventory.html");
   const allItems = await dashboardPage.getAllProductsNames();
   await dashboardPage.addToCartByNames([allItems[0], allItems[1], allItems[4]]);
   await dashboardPage.navigateToCart();
-  await cartPage.checkCartTitle();
 });
 
 test.afterEach(async ({ page }) => {
