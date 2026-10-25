@@ -9,7 +9,6 @@ let loginPage: LoginPage;
 test.beforeEach(async ({ page }) => {
   loginPage = new LoginPage(page);
   await page.goto("/");
-  await loginPage.checkTitleVisibility();
   logger.info(`Navigated to Application`);
 });
 

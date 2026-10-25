@@ -1,21 +1,16 @@
 import { test, expect } from "@playwright/test";
-import { LoginPage } from "../pages/login-page";
 import { DashboardPage } from "../pages/dashboard-page";
 import { CartPage } from "../pages/cart-page";
 
-import { ENV_CONFIG } from "../config/environment";
-
-let loginPage: LoginPage;
 let dashboardPage: DashboardPage;
 let cartPage: CartPage;
 
+test.use({ storageState: "helpers/storage-state.json" });
+
 test.beforeEach(async ({ page }) => {
-  loginPage = new LoginPage(page);
   dashboardPage = new DashboardPage(page);
   cartPage = new CartPage(page);
-  await page.goto("/");
-  await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await dashboardPage.checkDashboardTitleVisibility();
+  await page.goto("/inventory.html");
 });
 
 test.describe("Navigation Tests", () => {

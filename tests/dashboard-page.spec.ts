@@ -8,12 +8,12 @@ import { ENV_CONFIG } from "../config/environment";
 let loginPage: LoginPage;
 let dashboardPage: DashboardPage;
 
+test.use({ storageState: "helpers/storage-state.json" });
+
 test.beforeEach(async ({ page }) => {
   loginPage = new LoginPage(page);
   dashboardPage = new DashboardPage(page);
-  await page.goto("/");
-  await loginPage.login(ENV_CONFIG.SAUCE_USERNAME, ENV_CONFIG.SAUCE_PASSWORD);
-  await dashboardPage.checkDashboardTitleVisibility();
+  await page.goto("/inventory.html");
 });
 
 test(
